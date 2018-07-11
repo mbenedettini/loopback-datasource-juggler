@@ -1,3 +1,143 @@
+2018-07-09, Version 3.22.2
+==========================
+
+ * assertation of undefined could be null (shenghu)
+
+ * fix: regression on Operation Hooks (virkt25)
+
+
+2018-07-02, Version 3.22.1
+==========================
+
+ * [WebFM] cs/pl/ru translation (#1600) (tangyinb)
+
+ * fixup! address code review comments (Miroslav Bajtoš)
+
+ * Fix type definitions for PersistedModel API (Miroslav Bajtoš)
+
+ * Fix Operation Hooks to propagate data changes (Miroslav Bajtoš)
+
+ * Fix stalebot config to ignore "good first issue" (Miroslav Bajtoš)
+
+
+2018-06-12, Version 3.22.0
+==========================
+
+ * Update strong-globalize to 4.x (Miroslav Bajtoš)
+
+ * Update remaining dev-dependencies to latest (Miroslav Bajtoš)
+
+ * Update eslint + config to latest (Miroslav Bajtoš)
+
+ * Disable package-lock feature of npm (Miroslav Bajtoš)
+
+ * Travis: add Node.js 10.x to the build matrix (Miroslav Bajtoš)
+
+ * Drop support for Node 4.x (Miroslav Bajtoš)
+
+
+2018-05-24, Version 3.21.1
+==========================
+
+ * Fix tests to ensure compatibility w/ should@10 (Raymond Feng)
+
+
+2018-05-22, Version 3.21.0
+==========================
+
+ * Fix datasource state management (Raymond Feng)
+
+
+2018-05-11, Version 3.20.2
+==========================
+
+ * Remove node ref (Raymond Feng)
+
+
+2018-05-11, Version 3.20.1
+==========================
+
+ * Update deps (Raymond Feng)
+
+
+2018-05-10, Version 3.20.0
+==========================
+
+ * Fix typescript definitions to be compatible with LB4 (Raymond Feng)
+
+ * Allow toObject() to accept an 'options' argument (Raymond Feng)
+
+
+2018-05-10, Version 3.19.0
+==========================
+
+ * Add typescript type definitions (Raymond Feng)
+
+ * Tidy up datasource (Raymond Feng)
+
+
+2018-04-19, Version 3.18.1
+==========================
+
+ * Polyfill Number.isFinite() to support PhantomJS (Miroslav Bajtoš)
+
+
+2018-04-17, Version 3.18.0
+==========================
+
+ * feat: remove a Model from all registries (Miroslav Bajtoš)
+
+
+2018-04-16, Version 3.17.0
+==========================
+
+ * feat: omit default fn for embedsMany (#1532) (Janny)
+
+
+2018-03-22, Version 3.16.0
+==========================
+
+ * Pass options argument to custom validators (bmatson)
+
+ * chore: update CODEOWNERS (#1566) (Diana Lau)
+
+
+2018-03-16, Version 3.15.5
+==========================
+
+ * Exclude .nyc_output from being published (Raymond Feng)
+
+ * CODEOWNERS: add nitro404 (Miroslav Bajtoš)
+
+
+2018-02-13, Version 3.15.4
+==========================
+
+ * fix: allow `new DataSource(connector, settings)` (Raymond Feng)
+
+
+2018-02-09, Version 3.15.3
+==========================
+
+ * fix: add more tests to verify new DataSource() (Raymond Feng)
+
+
+2018-02-07, Version 3.15.2
+==========================
+
+ * feat(datasource): seperate name and connector  name (Nguyen Truong Minh)
+
+ * Fix datasource not correctly retaining name value (Kevin Scroggins)
+
+
+2018-02-06, Version 3.15.1
+==========================
+
+ * Added error handling for persist operation hook (#1531) (Kevin Scroggins)
+
+ * Add warning for datasources with mismatched names (Kevin Scroggins)
+
+
 2018-01-19, Version 3.15.0
 ==========================
 
