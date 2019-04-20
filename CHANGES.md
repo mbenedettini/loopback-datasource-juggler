@@ -1,3 +1,171 @@
+2019-04-10, Version 4.6.2
+=========================
+
+ * chore: update CODEOWNERS (#1712) (Diana Lau)
+
+ * fix: ignore git file (#1714) (Janny)
+
+ * remove kv-extreme-scale ctor from downstream test (#1710) (Diana Lau)
+
+
+2019-04-09, Version 4.6.1
+=========================
+
+ * Improve tests for empty vs. default values (Miroslav Bajtoš)
+
+ * Do not apply default values on data from database (Miroslav Bajtoš)
+
+ * Update datasource-connector.md (#1703) (Jam Risser)
+
+ * feat: support array within array (Hage Yaapa)
+
+ * fix: update lodash (#1696) (Janny)
+
+
+2019-02-26, Version 4.6.0
+=========================
+
+ * feat: Support "type" key in sub-properties (Hage Yaapa)
+
+ * fix: use correct callback for geo find queries (biniam)
+
+ * fix: update typescript declarations (biniam)
+
+
+2019-01-29, Version 4.5.3
+=========================
+
+ * Support nested properties with class type (Miroslav Bajtoš)
+
+
+2019-01-24, Version 4.5.2
+=========================
+
+ * Improve Model type definitions (Miroslav Bajtoš)
+
+ * fix: use existing field in exclude test (biniam)
+
+
+2018-12-14, Version 4.5.0
+=========================
+
+ * Revert "5.0.0". It was released accidentally. (Diana Lau)
+
+ * Upgrade eslint-config-loopback to latest (Miroslav Bajtoš)
+
+ * manually fix remaining problems (Miroslav Bajtoš)
+
+ * autofix eslint errors (Miroslav Bajtoš)
+
+ * eslint: enable no-var and prefer-const rules (Miroslav Bajtoš)
+
+ * Update eslint-config-loopback to latest (Miroslav Bajtoš)
+
+ * Update dependencies to latest versions (Miroslav Bajtoš)
+
+ * Upgrade bson to 4.x (latest) (Miroslav Bajtoš)
+
+ * feat: dataSource.execute(cmd, args, opts, cb) (Miroslav Bajtoš)
+
+ * eslint: enable ES2017 (async functions) (Miroslav Bajtoš)
+
+
+2018-11-15, Version 4.4.0
+=========================
+
+ * Use options from request for settings (Raymond Feng)
+
+
+2018-11-12, Version 4.3.0
+=========================
+
+ * Allow flags to be passed via options (Raymond Feng)
+
+ * chore: update file list for apidocs (biniam)
+
+
+2018-11-07, Version 4.2.1
+=========================
+
+ * [ BUGFIX ] maxDepthOfQuery config (leon3s)
+
+
+2018-10-31, Version 4.2.0
+=========================
+
+ * Allow configuration of maxDepthOfQuery (Raymond Feng)
+
+
+2018-10-29, Version 4.1.2
+=========================
+
+ * Check composite keys containing hidden props (Raymond Feng)
+
+ * Improve hidden/protected property checks (Raymond Feng)
+
+
+2018-10-27, Version 4.1.1
+=========================
+
+ * Allow hidden/protected props as an object (Raymond Feng)
+
+
+2018-10-26, Version 4.1.0
+=========================
+
+ * Ren handleUndefined to normalizeUndefinedInQuery (Raymond Feng)
+
+ * Report circular or deep query objects (Raymond Feng)
+
+ * Hide offending properties from the error object (Raymond Feng)
+
+ * Tidy up extended operator check (Raymond Feng)
+
+ * Prevent hidden/protected props from being searched (Raymond Feng)
+
+ * Report errors for missing id props for include (Raymond Feng)
+
+ * fix: add test coverage, correct typo that exposed (Matthew Gabeler-Lee)
+
+ * fix: accelerate unique id checking (Matthew Gabeler-Lee)
+
+ * remove null in embedded doc properties updates (Dimitris)
+
+
+2018-10-08, Version 4.0.0
+=========================
+
+ * Update LTS versions in README (Miroslav Bajtoš)
+
+ * Switch from Bluebird to native Promise (Miroslav Bajtoš)
+
+ * Start 4.0 development, drop support for Node 6 (Miroslav Bajtoš)
+
+
+2018-09-17, Version 3.24.0
+==========================
+
+ * Add IBM copyright and MIT license headers (Raymond Feng)
+
+ * Allow List to take items as instances of a class (Raymond Feng)
+
+ * fix: ignore extra properties when strict=filter (#1423) (Tom Kirkpatrick)
+
+ * Add EventEmitter type info to DataSource type (shimks)
+
+
+2018-07-16, Version 3.23.0
+==========================
+
+ * fix: update TypeScript declaration for KV (Raymond Feng)
+
+ * Upgrade eslint-config-loopback + fix formatting (Miroslav Bajtoš)
+
+ * Hide nyc coverage from test output (Miroslav Bajtoš)
+
+ * Configure Mocha to use dot reporter (Miroslav Bajtoš)
+
+
 2018-07-09, Version 3.22.2
 ==========================
 

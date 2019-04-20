@@ -1,14 +1,13 @@
 'use strict';
 
-var should = require('should');
-var helpers = require('./_helpers');
-var Promise = require('bluebird');
+const should = require('should');
+const helpers = require('./_helpers');
 
 module.exports = function(dataSourceFactory, connectorCapabilities) {
-  var TTL_PRECISION = connectorCapabilities.ttlPrecision;
+  const TTL_PRECISION = connectorCapabilities.ttlPrecision;
 
   describe('get/set', function() {
-    var CacheItem;
+    let CacheItem;
     beforeEach(setupCacheItem);
 
     it('works for string values - Callback API', function(done) {
@@ -69,7 +68,7 @@ module.exports = function(dataSourceFactory, connectorCapabilities) {
 
     it('honours options.ttl', function() {
       return CacheItem.set('a-key', 'a-value', {ttl: TTL_PRECISION})
-        .delay(2 * TTL_PRECISION)
+        .then(() => helpers.delay(2 * TTL_PRECISION))
         .then(function() { return CacheItem.get('a-key'); })
         .then(function(value) { should.equal(value, null); });
     });
@@ -84,7 +83,7 @@ module.exports = function(dataSourceFactory, connectorCapabilities) {
     describe('set', function() {
       it('converts numeric options arg to options.ttl', function() {
         return CacheItem.set('a-key', 'a-value', TTL_PRECISION)
-          .delay(2 * TTL_PRECISION)
+          .then(() => helpers.delay(2 * TTL_PRECISION))
           .then(function() { return CacheItem.get('a-key'); })
           .then(function(value) { should.equal(value, null); });
       });
@@ -94,7 +93,7 @@ module.exports = function(dataSourceFactory, connectorCapabilities) {
           .then(function() {
             return CacheItem.set('a-key', 'another-value'); // no TTL
           })
-          .delay(2 * TTL_PRECISION)
+          .then(() => helpers.delay(2 * TTL_PRECISION))
           .then(function() { return CacheItem.get('a-key'); })
           .then(function(value) { should.equal(value, 'another-value'); });
       });
@@ -103,6 +102,6 @@ module.exports = function(dataSourceFactory, connectorCapabilities) {
     function setupCacheItem() {
       return helpers.givenCacheItem(dataSourceFactory)
         .then(ModelCtor => CacheItem = ModelCtor);
-    };
+    }
   });
 };

@@ -7,16 +7,16 @@
 'use strict';
 
 /* global getSchema:false, connectorCapabilities:false */
-var async = require('async');
-var bdd = require('./helpers/bdd-if');
-var should = require('./init.js');
-var uid = require('./helpers/uid-generator');
+const async = require('async');
+const bdd = require('./helpers/bdd-if');
+const should = require('./init.js');
+const uid = require('./helpers/uid-generator');
 
-var db, User;
+let db, User;
 
 describe('basic-querying', function() {
   before(function(done) {
-    var userModelDef = {
+    const userModelDef = {
       seq: {type: Number, index: true},
       name: {type: String, index: true, sort: true},
       email: {type: String, index: true},
@@ -71,7 +71,7 @@ describe('basic-querying', function() {
     });
 
     it('should query by id: not found', function(done) {
-      var unknownId = uid.fromConnector(db) || 1;
+      const unknownId = uid.fromConnector(db) || 1;
       User.findById(unknownId, function(err, u) {
         should.not.exist(u);
         should.not.exist(err);
@@ -94,10 +94,10 @@ describe('basic-querying', function() {
   });
 
   describe('findByIds', function() {
-    var createdUsers;
+    let createdUsers;
     before(function(done) {
       db = getSchema();
-      var people = [
+      const people = [
         {name: 'a', vip: true},
         {name: 'b', vip: null},
         {name: 'c'},
@@ -122,13 +122,15 @@ describe('basic-querying', function() {
         function(err, users) {
           should.exist(users);
           should.not.exist(err);
-          var names = users.map(function(u) {
+          const names = users.map(function(u) {
             return u.name;
           });
           names.should.eql(
-            [createdUsers[2].name, createdUsers[1].name, createdUsers[0].name]);
+            [createdUsers[2].name, createdUsers[1].name, createdUsers[0].name]
+          );
           done();
-        });
+        }
+      );
     });
 
     it('should query by ids and condition', function(done) {
@@ -140,7 +142,7 @@ describe('basic-querying', function() {
       {where: {vip: true}}, function(err, users) {
         should.exist(users);
         should.not.exist(err);
-        var names = users.map(function(u) {
+        const names = users.map(function(u) {
           return u.name;
         });
         names.should.eql(createdUsers.slice(0, 4).
@@ -281,7 +283,7 @@ describe('basic-querying', function() {
       User.find({order: 'order DESC'}, function(err, users) {
         if (err) return done(err);
         should.exists(users);
-        var order = users.map(function(u) { return u.order; });
+        const order = users.map(function(u) { return u.order; });
         order.should.eql([6, 5, 4, 3, 2, 1]);
         done();
       });
@@ -469,7 +471,7 @@ describe('basic-querying', function() {
         User.find({where: {name: {'gte': 'Paul McCartney'}}}, function(err, users) {
           should.not.exist(err);
           users.should.have.property('length', 4);
-          for (var ix = 0; ix < users.length; ix++) {
+          for (let ix = 0; ix < users.length; ix++) {
             users[ix].name.should.be.greaterThanOrEqual('Paul McCartney');
           }
           done();
@@ -491,7 +493,7 @@ describe('basic-querying', function() {
         }}, function(err, users) {
           should.not.exist(err);
           users.should.have.property('length', 3);
-          for (var ix = 0; ix < users.length; ix++) {
+          for (let ix = 0; ix < users.length; ix++) {
             users[ix].name.should.be.greaterThan('Paul McCartney');
           }
           done();
@@ -504,7 +506,7 @@ describe('basic-querying', function() {
         }}, function(err, users) {
           should.not.exist(err);
           users.should.have.property('length', 2);
-          for (var ix = 0; ix < users.length; ix++) {
+          for (let ix = 0; ix < users.length; ix++) {
             users[ix].name.should.be.lessThan('Paul McCartney');
           }
           done();
@@ -516,10 +518,10 @@ describe('basic-querying', function() {
       }}, function(err, users) {
         should.not.exist(err);
         users.should.have.property('length', 3);
-        for (var ix = 0; ix < users.length; ix++) {
+        for (let ix = 0; ix < users.length; ix++) {
           users[ix].name.should.be.oneOf(['John Lennon', 'Stuart Sutcliffe', 'Paul McCartney']);
           users[ix].vip.should.be.true();
-        };
+        }
         done();
       });
     });
@@ -538,7 +540,7 @@ describe('basic-querying', function() {
       }}, function(err, users) {
         should.not.exist(err);
         users.should.have.property('length', 3);
-        for (var ix = 0; ix < users.length; ix++) {
+        for (let ix = 0; ix < users.length; ix++) {
           users[ix].name.should.be.oneOf(['John Lennon', 'Stuart Sutcliffe', 'Paul McCartney']);
           users[ix].vip.should.be.true(users[ix].name + ' should be VIP');
         }
@@ -551,7 +553,7 @@ describe('basic-querying', function() {
       }}, function(err, users) {
         should.not.exist(err);
         users.should.have.property('length', 2);
-        for (var ix = 0; ix < users.length; ix++) {
+        for (let ix = 0; ix < users.length; ix++) {
           users[ix].name.should.be.oneOf(['Ringo Starr', 'George Harrison']);
           users[ix].vip.should.be.false(users[ix].name + ' should not be VIP');
         }
@@ -576,7 +578,7 @@ describe('basic-querying', function() {
         });
     });
 
-    var itWhenIlikeSupported = connectorCapabilities.ilike;
+    const itWhenIlikeSupported = connectorCapabilities.ilike;
     bdd.describeIf(itWhenIlikeSupported, 'ilike', function() {
       it('should support "like" that is satisfied',
         function(done) {
@@ -616,7 +618,7 @@ describe('basic-querying', function() {
       });
     });
 
-    var itWhenNilikeSupported = connectorCapabilities.nilike !== false;
+    const itWhenNilikeSupported = connectorCapabilities.nilike !== false;
     bdd.describeIf(itWhenNilikeSupported, 'nilike', function() {
       it('should support "nlike" that is satisfied', function(done) {
         User.find({where: {name: {nlike: 'John'}}},
@@ -652,6 +654,7 @@ describe('basic-querying', function() {
             if (err) done(err);
             users.should.have.property('length', 3);
             users[0].name.should.equal('John Lennon');
+            users[0].should.be.instanceOf(User);
             users[0].addressLoc.should.not.be.null();
             done();
           });
@@ -675,6 +678,7 @@ describe('basic-querying', function() {
             if (err) done(err);
             users.should.have.property('length', 2);
             users[0].name.should.equal('John Lennon');
+            users[0].should.be.instanceOf(User);
             users[0].addressLoc.should.not.be.null();
             users[0].vip.should.be.true();
             done();
@@ -706,6 +710,7 @@ describe('basic-querying', function() {
             if (err) done(err);
             users.should.have.property('length', 1);
             users[0].name.should.equal('John Lennon');
+            users[0].should.be.instanceOf(User);
             users[0].addressLoc.should.not.be.null();
             users[0].vip.should.be.true();
             users[0].order.should.equal(2);
@@ -736,6 +741,7 @@ describe('basic-querying', function() {
             users.should.have.property('length', 2);
             users[0].addressLoc.should.not.be.null();
             users[0].name.should.equal('Paul McCartney');
+            users[0].should.be.instanceOf(User);
             users[1].addressLoc.should.not.equal(null);
             users[1].name.should.equal('John Lennon');
             done();
@@ -773,6 +779,7 @@ describe('basic-querying', function() {
             users.should.have.property('length', 1);
             users[0].addressLoc.should.not.be.null();
             users[0].name.should.equal('John Lennon');
+            users[0].should.be.instanceOf(User);
             users[0].vip.should.be.true();
             done();
           });
@@ -781,7 +788,7 @@ describe('basic-querying', function() {
     });
 
     it('should only include fields as specified', function(done) {
-      var remaining = 0;
+      let remaining = 0;
 
       function sample(fields) {
         return {
@@ -798,7 +805,7 @@ describe('basic-querying', function() {
               }
 
               users.forEach(function(user) {
-                var obj = user.toObject();
+                const obj = user.toObject();
 
                 Object.keys(obj)
                   .forEach(function(key) {
@@ -848,13 +855,13 @@ describe('basic-querying', function() {
       });
     });
 
-    var describeWhenNestedSupported = connectorCapabilities.nestedProperty;
+    const describeWhenNestedSupported = connectorCapabilities.nestedProperty;
     bdd.describeIf(describeWhenNestedSupported, 'query with nested property', function() {
       it('should support nested property in query', function(done) {
         User.find({where: {'address.city': 'San Jose'}}, function(err, users) {
           if (err) return done(err);
           users.length.should.be.equal(1);
-          for (var i = 0; i < users.length; i++) {
+          for (let i = 0; i < users.length; i++) {
             users[i].address.city.should.be.eql('San Jose');
           }
           done();
@@ -865,7 +872,7 @@ describe('basic-querying', function() {
         User.find({where: {'friends.name': {regexp: /^Ringo/}}}, function(err, users) {
           if (err) return done(err);
           users.length.should.be.equal(2);
-          var expectedUsers = ['John Lennon', 'Paul McCartney'];
+          const expectedUsers = ['John Lennon', 'Paul McCartney'];
           expectedUsers.indexOf(users[0].name).should.not.equal(-1);
           expectedUsers.indexOf(users[1].name).should.not.equal(-1);
           done();
@@ -876,7 +883,7 @@ describe('basic-querying', function() {
         User.find({where: {'address.city': {gt: 'San'}}}, function(err, users) {
           if (err) return done(err);
           users.length.should.be.equal(2);
-          for (var i = 0; i < users.length; i++) {
+          for (let i = 0; i < users.length; i++) {
             users[i].address.state.should.be.eql('CA');
           }
           done();
@@ -914,6 +921,30 @@ describe('basic-querying', function() {
             done();
           });
         });
+    });
+
+    it('preserves empty values from the database', async () => {
+      // https://github.com/strongloop/loopback-datasource-juggler/issues/1692
+
+      // Initially, all Players were always active, no property was needed
+      const Player = db.define('Player', {name: String});
+
+      await db.automigrate('Player');
+      const created = await Player.create({name: 'Pen'});
+
+      // Later on, we decide to introduce `active` property
+      Player.defineProperty('active', {
+        type: Boolean,
+        default: false,
+      });
+      await db.autoupdate('Player');
+
+      // And query existing data
+      const found = await Player.findOne();
+      should(found.toObject().active).be.oneOf([
+        undefined, // databases supporting `undefined` value
+        null, // databases representing `undefined` as `null` (e.g. SQL)
+      ]);
     });
   });
 
@@ -1013,7 +1044,7 @@ describe('basic-querying', function() {
     });
 
     it('should check whether record not exist', function(done) {
-      var unknownId = uid.fromConnector(db) || 42;
+      const unknownId = uid.fromConnector(db) || 42;
       User.destroyAll(function() {
         User.exists(unknownId, function(err, exists) {
           should.not.exist(err);
@@ -1024,8 +1055,42 @@ describe('basic-querying', function() {
     });
   });
 
+  describe('updateAll', function() {
+    it('coerces primitive datatypes on update', async () => {
+      const numAndDateModel = db.define('numAndDateModel', {
+        dateProp: Date,
+        dateArray: [Date],
+        numProp: Number,
+        numArray: [Number],
+      });
+      const createDate = new Date('2019-02-21T12:00:00').toISOString();
+      const createData = {
+        dateProp: createDate,
+        dateArray: [createDate, createDate],
+        numProp: '1',
+        numArray: ['1', '2'],
+      };
+      const updateDate = new Date('2019-04-15T12:00:00').toISOString();
+      const updateData = {
+        dateProp: updateDate,
+        dateArray: [updateDate, updateDate],
+        numProp: '3',
+        numArray: ['3', '4'],
+      };
+      const created = await numAndDateModel.create(createData);
+      const updated = await numAndDateModel.updateAll({id: created.id}, updateData);
+      const found = await numAndDateModel.findById(created.id);
+      found.dateProp.should.deepEqual(new Date(updateDate));
+      found.dateArray[0].should.deepEqual(new Date(updateDate));
+      found.dateArray[1].should.deepEqual(new Date(updateDate));
+      found.numProp.should.equal(3);
+      found.numArray[0].should.equal(3);
+      found.numArray[1].should.equal(4);
+    });
+  });
+
   context('regexp operator', function() {
-    var invalidDataTypes = [0, true, {}, [], Function, null];
+    const invalidDataTypes = [0, true, {}, [], Function, null];
 
     before(seed);
 
@@ -1044,7 +1109,7 @@ describe('basic-querying', function() {
 
 // FIXME: This should either be re-enabled or removed.
 describe.skip('queries', function() {
-  var Todo;
+  let Todo;
 
   before(function prepDb(done) {
     db = getSchema();
@@ -1076,7 +1141,7 @@ describe.skip('queries', function() {
     });
 
     it('should work for updateOrCreate/upsert', function(done) {
-      var aliases = ['updateOrCreate', 'upsert'];
+      const aliases = ['updateOrCreate', 'upsert'];
       async.each(aliases, function(alias, cb) {
         Todo[alias]({content: 'Buy ham'}, function(err) {
           should.not.exist(err);
@@ -1116,7 +1181,7 @@ describe.skip('queries', function() {
     it('should work for deleteAll/destroyAll/remove', function(done) {
       // FIXME: We should add a DAO.delete static method alias for consistency
       // (DAO.prototype.delete instance method already exists)
-      var aliases = ['deleteAll', 'destroyAll', 'remove'];
+      const aliases = ['deleteAll', 'destroyAll', 'remove'];
       async.each(aliases, function(alias, cb) {
         Todo[alias](function(err) {
           should.not.exist(err);
@@ -1141,7 +1206,7 @@ describe.skip('queries', function() {
   });
 
   context('that require an id', function() {
-    var expectedErrMsg = 'Primary key is missing for the Todo model';
+    const expectedErrMsg = 'Primary key is missing for the Todo model';
 
     it('should return an error for findById', function(done) {
       Todo.findById(1, function(err) {
@@ -1161,7 +1226,7 @@ describe.skip('queries', function() {
 
     it('should return an error for deleteById/destroyById/removeById',
       function(done) {
-        var aliases = ['deleteById', 'destroyById', 'removeById'];
+        const aliases = ['deleteById', 'destroyById', 'removeById'];
         async.each(aliases, function(alias, cb) {
           Todo[alias](1, function(err) {
             should.exist(err);
@@ -1172,7 +1237,7 @@ describe.skip('queries', function() {
       });
 
     it('should return an error for instance.save', function(done) {
-      var todo = new Todo();
+      const todo = new Todo();
       todo.content = 'Buy ham';
       todo.save(function(err) {
         should.exist(err);
@@ -1214,7 +1279,7 @@ describe.skip('queries', function() {
 });
 
 function seed(done) {
-  var beatles = [
+  const beatles = [
     {
       seq: 0,
       name: 'John Lennon',
@@ -1283,6 +1348,6 @@ function seed(done) {
 }
 
 function nextAfterDelay(ctx, next) {
-  var randomTimeoutTrigger = Math.floor(Math.random() * 100);
+  const randomTimeoutTrigger = Math.floor(Math.random() * 100);
   setTimeout(function() { process.nextTick(next); }, randomTimeoutTrigger);
 }

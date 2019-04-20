@@ -7,9 +7,9 @@
 'use strict';
 
 /* global getSchema:false */
-var should = require('./init.js');
-var async = require('async');
-var db, User, options, filter;
+const should = require('./init.js');
+const async = require('async');
+let db, User, options, filter;
 
 describe('crud-with-options', function() {
   before(function(done) {
@@ -23,6 +23,7 @@ describe('crud-with-options', function() {
       role: {type: String, index: true},
       order: {type: Number, index: true, sort: true},
       vip: {type: Boolean},
+      address: {type: {city: String, area: String}},
     });
     options = {};
     filter = {fields: ['name', 'id']};
@@ -89,7 +90,8 @@ describe('crud-with-options', function() {
       function(done) {
         User.findById(undefined, {}, function(err, u) {
           err.should.be.eql(
-            new Error('Model::findById requires the id argument'));
+            new Error('Model::findById requires the id argument')
+          );
           done();
         });
       });
@@ -144,7 +146,7 @@ describe('crud-with-options', function() {
 
     it('should allow promise-style findById',
       function(done) {
-        User.create({name: 'w', email: 'w@y.com'}).then(function(u) {
+        User.create({id: 15, name: 'w', email: 'w@y.com'}).then(function(u) {
           should.exist(u.id);
           return User.findById(u.id).then(function(u) {
             should.exist(u);
@@ -191,7 +193,7 @@ describe('crud-with-options', function() {
 
   describe('findByIds', function() {
     before(function(done) {
-      var people = [
+      const people = [
         {id: 1, name: 'a', vip: true},
         {id: 2, name: 'b'},
         {id: 3, name: 'c'},
@@ -211,7 +213,7 @@ describe('crud-with-options', function() {
       User.findByIds([3, 2, 1], function(err, users) {
         should.exist(users);
         should.not.exist(err);
-        var names = users.map(function(u) { return u.name; });
+        const names = users.map(function(u) { return u.name; });
         names.should.eql(['c', 'b', 'a']);
         done();
       });
@@ -223,7 +225,7 @@ describe('crud-with-options', function() {
           {where: {vip: true}}, options, function(err, users) {
             should.exist(users);
             should.not.exist(err);
-            var names = users.map(function(u) {
+            const names = users.map(function(u) {
               return u.name;
             });
             names.should.eql(['d', 'a']);
@@ -405,15 +407,15 @@ describe('crud-with-options', function() {
 
   describe('save', function() {
     it('should allow save(options, cb)', function(done) {
-      var options = {foo: 'bar'};
-      var opts;
+      const options = {foo: 'bar'};
+      let opts;
 
       User.observe('after save', function(ctx, next) {
         opts = ctx.options;
         next();
       });
 
-      var u = new User();
+      const u = new User();
       u.save(options, function(err) {
         should.not.exist(err);
         options.should.equal(opts);
@@ -519,6 +521,24 @@ describe('crud-with-options', function() {
       });
     });
   });
+
+  describe('updateAttributes', function() {
+    beforeEach(seed);
+    it('preserves document properties not modified by the patch', function() {
+      return User.findOne({where: {name: 'John Lennon'}})
+        .then(function(user) {
+          return user.updateAttributes({address: {city: 'Volos'}});
+        })
+        .then(function() {
+          return User.findOne({where: {name: 'John Lennon'}}); // retrieve the user again from the db
+        })
+        .then(function(updatedUser) {
+          updatedUser.address.city.should.equal('Volos');
+          should(updatedUser.address.area).not.be.exactly(null);
+          should(updatedUser.address.area).be.undefined();
+        });
+    });
+  });
 });
 
 describe('upsertWithWhere', function() {
@@ -585,8 +605,9 @@ describe('upsertWithWhere', function() {
 });
 
 function seed(done) {
-  var beatles = [
+  const beatles = [
     {
+      id: 0,
       seq: 0,
       name: 'John Lennon',
       email: 'john@b3atl3s.co.uk',
@@ -596,6 +617,7 @@ function seed(done) {
       vip: true,
     },
     {
+      id: 1,
       seq: 1,
       name: 'Paul McCartney',
       email: 'paul@b3atl3s.co.uk',
@@ -604,10 +626,10 @@ function seed(done) {
       order: 1,
       vip: true,
     },
-    {seq: 2, name: 'George Harrison', order: 5, vip: false},
-    {seq: 3, name: 'Ringo Starr', order: 6, vip: false},
-    {seq: 4, name: 'Pete Best', order: 4},
-    {seq: 5, name: 'Stuart Sutcliffe', order: 3, vip: true},
+    {id: 2, seq: 2, name: 'George Harrison', order: 5, vip: false},
+    {id: 3, seq: 3, name: 'Ringo Starr', order: 6, vip: false},
+    {id: 4, seq: 4, name: 'Pete Best', order: 4},
+    {id: 5, seq: 5, name: 'Stuart Sutcliffe', order: 3, vip: true},
   ];
 
   async.series([

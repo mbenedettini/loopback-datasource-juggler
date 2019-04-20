@@ -73,8 +73,8 @@ describe('Model class inheritance', function() {
         relations: {patch: true},
       };
 
-        // saving original getMergePolicy method
-      let originalGetMergePolicy = base.getMergePolicy;
+      // saving original getMergePolicy method
+      const originalGetMergePolicy = base.getMergePolicy;
 
       // the injected getMergePolicy method captures the provided configureModelMerge option
       base.getMergePolicy = function(options) {
@@ -154,9 +154,9 @@ describe('Model class inheritance', function() {
     });
 
     it('allows model extension', function(done) {
-      var modelBuilder = new ModelBuilder();
+      const modelBuilder = new ModelBuilder();
 
-      var User = modelBuilder.define('User', {
+      const User = modelBuilder.define('User', {
         name: String,
         bio: ModelBuilder.Text,
         approved: Boolean,
@@ -164,9 +164,9 @@ describe('Model class inheritance', function() {
         age: Number,
       });
 
-      var Customer = User.extend('Customer', {customerId: {type: String, id: true}});
+      const Customer = User.extend('Customer', {customerId: {type: String, id: true}});
 
-      var customer = new Customer({name: 'Joe', age: 20, customerId: 'c01'});
+      const customer = new Customer({name: 'Joe', age: 20, customerId: 'c01'});
 
       customer.should.be.type('object').and.have.property('name', 'Joe');
       customer.should.have.property('name', 'Joe');
@@ -179,8 +179,8 @@ describe('Model class inheritance', function() {
         // Remove internal properties
         return k.indexOf('__') === -1;
       }).length, 0);
-      var count = 0;
-      for (var p in customer.toObject()) {
+      let count = 0;
+      for (const p in customer.toObject()) {
         if (p.indexOf('__') === 0) {
           continue;
         }
@@ -198,9 +198,9 @@ describe('Model class inheritance', function() {
     });
 
     it('allows model extension with merged settings', function(done) {
-      var modelBuilder = new ModelBuilder();
+      const modelBuilder = new ModelBuilder();
 
-      var User = modelBuilder.define('User', {
+      const User = modelBuilder.define('User', {
         name: String,
       }, {
         defaultPermission: 'ALLOW',
@@ -219,7 +219,7 @@ describe('Model class inheritance', function() {
         },
       });
 
-      var Customer = User.extend('Customer',
+      const Customer = User.extend('Customer',
         {customerId: {type: String, id: true}}, {
           defaultPermission: 'DENY',
           acls: [
@@ -235,8 +235,7 @@ describe('Model class inheritance', function() {
               model: 'Order',
             },
           },
-        }
-      );
+        });
 
       assert.deepEqual(User.settings, {
         // forceId is set to 'auto' in memory if idProp.generated && forceId !== false

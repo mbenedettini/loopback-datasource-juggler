@@ -15,7 +15,7 @@
 
 'use strict';
 
-var group_name = false, EXT_EXP;
+let group_name = false, EXT_EXP;
 function it(should, test_case) {
   check_external_exports();
   if (group_name) {
@@ -54,6 +54,7 @@ exports.init = function init(external_exports) {
 function check_external_exports() {
   if (!EXT_EXP) throw new Error(
     'Before run this, please ensure that ' +
-      'require("spec_helper").init(exports); called');
+      'require("spec_helper").init(exports); called'
+  );
 }
 

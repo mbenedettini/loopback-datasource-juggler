@@ -1,9 +1,14 @@
+// Copyright IBM Corp. 2013,2016. All Rights Reserved.
+// Node module: loopback-datasource-juggler
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
 'use strict';
-var kvMemory = require('../lib/connectors/kv-memory');
-var DataSource = require('..').DataSource;
+const kvMemory = require('../lib/connectors/kv-memory');
+const DataSource = require('..').DataSource;
 
 describe('Optimized KeyValue-Memory connector', function() {
-  var dataSourceFactory = function() {
+  const dataSourceFactory = function() {
     return new DataSource({connector: kvMemory});
   };
 
@@ -11,8 +16,8 @@ describe('Optimized KeyValue-Memory connector', function() {
 });
 
 describe('Unoptimized KeyValue-Memory connector', function() {
-  var dataSourceFactory = function() {
-    var ds = new DataSource({connector: kvMemory});
+  const dataSourceFactory = function() {
+    const ds = new DataSource({connector: kvMemory});
 
     // disable optimized methods
     ds.connector.deleteAll = false;

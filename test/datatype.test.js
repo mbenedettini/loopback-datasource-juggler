@@ -7,15 +7,21 @@
 'use strict';
 
 /* global getSchema:false */
-var should = require('./init.js');
+const should = require('./init.js');
 
-var db, Model;
+let db, Model;
+
+class NestedClass {
+  constructor(roleName) {
+    this.roleName = roleName;
+  }
+}
 
 describe('datatypes', function() {
   before(function(done) {
     db = getSchema();
-    var Nested = db.define('Nested', {});
-    var modelTableSchema = {
+    const Nested = db.define('Nested', {});
+    const modelTableSchema = {
       str: String,
       date: Date,
       num: Number,
@@ -23,14 +29,81 @@ describe('datatypes', function() {
       list: {type: [String]},
       arr: Array,
       nested: Nested,
+      nestedClass: NestedClass,
     };
     Model = db.define('Model', modelTableSchema);
     db.automigrate(['Model'], done);
   });
 
+  it('should resolve top-level "type" property correctly', function() {
+    const Account = db.define('Account', {
+      type: String,
+      id: String,
+    });
+    Account.definition.properties.type.type.should.equal(String);
+  });
+
+  it('should resolve "type" sub-property correctly', function() {
+    const Account = db.define('Account', {
+      item: {type: {
+        itemname: {type: String},
+        type: {type: String},
+      }},
+    });
+    Account.definition.properties.item.type.should.not.equal(String);
+  });
+  it('should resolve array prop with connector specific metadata', function() {
+    const model = db.define('test', {
+      randomReview: {
+        type: [String],
+        mongodb: {
+          dataType: 'Decimal128',
+        },
+      },
+    });
+    model.definition.properties.randomReview.type.should.deepEqual(Array(String));
+    model.definition.properties.randomReview.mongodb.should.deepEqual({dataType: 'Decimal128'});
+  });
+
+  it('should coerce array of dates from string', async () => {
+    const dateArrayModel = db.define('dateArrayModel', {
+      bunchOfDates: [Date],
+      bunchOfOtherDates: {
+        type: [Date],
+      },
+    });
+    const dateVal = new Date('2019-02-21T12:00:00').toISOString();
+    const created = await dateArrayModel.create({
+      bunchOfDates: [dateVal,
+        dateVal,
+        dateVal],
+      bunchOfOtherDates: [dateVal,
+        dateVal,
+        dateVal],
+    });
+    created.bunchOfDates[0].should.be.an.instanceOf(Date);
+    created.bunchOfDates[0].should.deepEqual(new Date(dateVal));
+    created.bunchOfOtherDates[0].should.be.an.instanceOf(Date);
+    created.bunchOfOtherDates[0].should.deepEqual(new Date(dateVal));
+  });
+
+  it('should coerce array of numbers from string', async () => {
+    const numArrayModel = db.define('numArrayModel', {
+      bunchOfNums: [Number],
+    });
+    const dateVal = new Date('2019-02-21T12:00:00').toISOString();
+    const created = await numArrayModel.create({
+      bunchOfNums: ['1',
+        '2',
+        '3'],
+    });
+    created.bunchOfNums[0].should.be.an.instanceOf(Number);
+    created.bunchOfNums[0].should.equal(1);
+  });
+
   it('should return 400 when property of type array is set to string value',
     function(done) {
-      var myModel = db.define('myModel', {
+      const myModel = db.define('myModel', {
         list: {type: ['object']},
       });
 
@@ -42,7 +115,7 @@ describe('datatypes', function() {
 
   it('should return 400 when property of type array is set to object value',
     function(done) {
-      var myModel = db.define('myModel', {
+      const myModel = db.define('myModel', {
         list: {type: ['object']},
       });
 
@@ -53,7 +126,8 @@ describe('datatypes', function() {
     });
 
   it('should keep types when get read data from db', function(done) {
-    var d = new Date('2015-01-01T12:00:00'), id;
+    const d = new Date('2015-01-01T12:00:00');
+    let id;
 
     Model.create({
       str: 'hello', date: d, num: '3', bool: 1, list: ['test'], arr: [1, 'str'],
@@ -100,8 +174,33 @@ describe('datatypes', function() {
     }
   });
 
+  it('should create nested object defined by a class when reading data from db', async () => {
+    const d = new Date('2015-01-01T12:00:00');
+    let id;
+    const created = await Model.create({
+      date: d,
+      list: ['test'],
+      arr: [1, 'str'],
+      nestedClass: new NestedClass('admin'),
+    });
+    created.list.should.deepEqual(['test']);
+    created.arr.should.deepEqual([1, 'str']);
+    created.date.should.be.an.instanceOf(Date);
+    created.date.toString().should.equal(d.toString(), 'Time must match');
+    created.nestedClass.should.have.property('roleName', 'admin');
+
+    const found = await Model.findById(created.id);
+    should.exist(found);
+    found.list.should.deepEqual(['test']);
+    found.arr.should.deepEqual([1, 'str']);
+    found.date.should.be.an.instanceOf(Date);
+    found.date.toString().should.equal(d.toString(), 'Time must match');
+    found.nestedClass.should.have.property('roleName', 'admin');
+  });
+
   it('should respect data types when updating attributes', function(done) {
-    var d = new Date, id;
+    const d = new Date;
+    let id;
 
     Model.create({
       str: 'hello', date: d, num: '3', bool: 1}, function(err, m) {
@@ -151,7 +250,7 @@ describe('datatypes', function() {
   });
 
   it('should not coerce nested objects into ModelConstructor types', function() {
-    var coerced = Model._coerce({nested: {foo: 'bar'}});
+    const coerced = Model._coerce({nested: {foo: 'bar'}});
     coerced.nested.constructor.name.should.equal('Object');
   });
 
@@ -176,13 +275,13 @@ describe('datatypes', function() {
       data: {type: 'string'},
     });
     db.automigrate(['HandleNullModel'], function() {
-      let a = new Model(null);
+      const a = new Model(null);
       done();
     });
   });
 
   describe('model option persistUndefinedAsNull', function() {
-    var TestModel, isStrict;
+    let TestModel, isStrict;
     before(function(done) {
       db = getSchema();
       TestModel = db.define(
@@ -194,7 +293,8 @@ describe('datatypes', function() {
         },
         {
           persistUndefinedAsNull: true,
-        });
+        }
+      );
 
       isStrict = TestModel.definition.settings.strict;
 
@@ -202,7 +302,7 @@ describe('datatypes', function() {
     });
 
     it('should set missing optional properties to null', function(done) {
-      var EXPECTED = {desc: null, stars: null};
+      const EXPECTED = {desc: null, stars: null};
       TestModel.create({name: 'a-test-name'}, function(err, created) {
         if (err) return done(err);
         created.should.have.properties(EXPECTED);
@@ -216,8 +316,8 @@ describe('datatypes', function() {
     });
 
     it('should convert property value undefined to null', function(done) {
-      var EXPECTED = {desc: null, extra: null};
-      var data = {desc: undefined, extra: undefined};
+      const EXPECTED = {desc: null, extra: null};
+      const data = {desc: undefined, extra: undefined};
       if (isStrict) {
         // SQL-based connectors don't support dynamic properties
         delete EXPECTED.extra;
@@ -237,21 +337,21 @@ describe('datatypes', function() {
     });
 
     it('should convert undefined to null in the setter', function() {
-      var inst = new TestModel();
+      const inst = new TestModel();
       inst.desc = undefined;
       inst.should.have.property('desc', null);
       inst.toObject().should.have.property('desc', null);
     });
 
     it('should use null in unsetAttribute()', function() {
-      var inst = new TestModel();
+      const inst = new TestModel();
       inst.unsetAttribute('stars');
       inst.should.have.property('stars', null);
       inst.toObject().should.have.property('stars', null);
     });
 
     it('should convert undefined to null on save', function(done) {
-      var EXPECTED = {desc: null, stars: null, extra: null, dx: null};
+      const EXPECTED = {desc: null, stars: null, extra: null, dx: null};
       if (isStrict) {
         // SQL-based connectors don't support dynamic properties
         delete EXPECTED.extra;
@@ -297,7 +397,7 @@ describe('datatypes', function() {
     });
 
     it('should convert undefined to null in toObject()', function() {
-      var inst = new TestModel();
+      const inst = new TestModel();
       inst.desc = undefined; // Note: this may be a no-op
       inst.unsetAttribute('stars');
       inst.extra = undefined;

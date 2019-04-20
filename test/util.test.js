@@ -4,20 +4,20 @@
 // License text available at https://opensource.org/licenses/MIT
 
 'use strict';
-var should = require('./init.js');
-var utils = require('../lib/utils');
-var ObjectID = require('bson').ObjectID;
-var fieldsToArray = utils.fieldsToArray;
-var removeUndefined = utils.removeUndefined;
-var deepMerge = utils.deepMerge;
-var rankArrayElements = utils.rankArrayElements;
-var mergeIncludes = utils.mergeIncludes;
-var sortObjectsByIds = utils.sortObjectsByIds;
-var uniq = utils.uniq;
+const should = require('./init.js');
+const utils = require('../lib/utils');
+const ObjectID = require('bson').ObjectID;
+const fieldsToArray = utils.fieldsToArray;
+const sanitizeQuery = utils.sanitizeQuery;
+const deepMerge = utils.deepMerge;
+const rankArrayElements = utils.rankArrayElements;
+const mergeIncludes = utils.mergeIncludes;
+const sortObjectsByIds = utils.sortObjectsByIds;
+const uniq = utils.uniq;
 
 describe('util.fieldsToArray', function() {
   function sample(fields, excludeUnknown) {
-    var properties = ['foo', 'bar', 'bat', 'baz'];
+    const properties = ['foo', 'bar', 'bat', 'baz'];
     return {
       expect: function(arr) {
         should.deepEqual(fieldsToArray(fields, properties, excludeUnknown), arr);
@@ -52,40 +52,75 @@ describe('util.fieldsToArray', function() {
   });
 });
 
-describe('util.removeUndefined', function() {
+describe('util.sanitizeQuery', function() {
   it('Remove undefined values from the query object', function() {
-    var q1 = {where: {x: 1, y: undefined}};
-    should.deepEqual(removeUndefined(q1), {where: {x: 1}});
+    const q1 = {where: {x: 1, y: undefined}};
+    should.deepEqual(sanitizeQuery(q1), {where: {x: 1}});
 
-    var q2 = {where: {x: 1, y: 2}};
-    should.deepEqual(removeUndefined(q2), {where: {x: 1, y: 2}});
+    const q2 = {where: {x: 1, y: 2}};
+    should.deepEqual(sanitizeQuery(q2), {where: {x: 1, y: 2}});
 
-    var q3 = {where: {x: 1, y: {in: [2, undefined]}}};
-    should.deepEqual(removeUndefined(q3), {where: {x: 1, y: {in: [2]}}});
+    const q3 = {where: {x: 1, y: {in: [2, undefined]}}};
+    should.deepEqual(sanitizeQuery(q3), {where: {x: 1, y: {in: [2]}}});
 
-    should.equal(removeUndefined(null), null);
+    should.equal(sanitizeQuery(null), null);
 
-    should.equal(removeUndefined(undefined), undefined);
+    should.equal(sanitizeQuery(undefined), undefined);
 
-    should.equal(removeUndefined('x'), 'x');
+    should.equal(sanitizeQuery('x'), 'x');
 
-    var date = new Date();
-    var q4 = {where: {x: 1, y: date}};
-    should.deepEqual(removeUndefined(q4), {where: {x: 1, y: date}});
+    const date = new Date();
+    const q4 = {where: {x: 1, y: date}};
+    should.deepEqual(sanitizeQuery(q4), {where: {x: 1, y: date}});
 
     // test handling of undefined
-    var q5 = {where: {x: 1, y: undefined}};
-    should.deepEqual(removeUndefined(q5, 'nullify'), {where: {x: 1, y: null}});
+    let q5 = {where: {x: 1, y: undefined}};
+    should.deepEqual(sanitizeQuery(q5, 'nullify'), {where: {x: 1, y: null}});
 
-    var q6 = {where: {x: 1, y: undefined}};
-    (function() { removeUndefined(q6, 'throw'); }).should.throw(/`undefined` in query/);
+    q5 = {where: {x: 1, y: undefined}};
+    should.deepEqual(sanitizeQuery(q5, {normalizeUndefinedInQuery: 'nullify'}), {where: {x: 1, y: null}});
+
+    const q6 = {where: {x: 1, y: undefined}};
+    (function() { sanitizeQuery(q6, 'throw'); }).should.throw(/`undefined` in query/);
+  });
+
+  it('Report errors for circular or deep query objects', function() {
+    const q7 = {where: {x: 1}};
+    q7.where.y = q7;
+    (function() { sanitizeQuery(q7); }).should.throw(
+      /The query object is circular/
+    );
+
+    const q8 = {where: {and: [{and: [{and: [{and: [{and: [{and:
+      [{and: [{and: [{and: [{x: 1}]}]}]}]}]}]}]}]}]}};
+    (function() { sanitizeQuery(q8, {maxDepth: 12}); }).should.throw(
+      /The query object exceeds maximum depth 12/
+    );
+
+    // maxDepth is default to maximum integer
+    sanitizeQuery(q8).should.eql(q8);
+
+    const q9 = {where: {and: [{and: [{and: [{and: [{x: 1}]}]}]}]}};
+    (function() { sanitizeQuery(q8, {maxDepth: 4}); }).should.throw(
+      /The query object exceeds maximum depth 4/
+    );
+  });
+
+  it('Removed prohibited properties in query objects', function() {
+    const q1 = {where: {secret: 'guess'}};
+    sanitizeQuery(q1, {prohibitedKeys: ['secret']});
+    q1.where.should.eql({});
+
+    const q2 = {and: [{secret: 'guess'}, {x: 1}]};
+    sanitizeQuery(q2, {prohibitedKeys: ['secret']});
+    q2.should.eql({and: [{}, {x: 1}]});
   });
 });
 
 describe('util.parseSettings', function() {
   it('Parse a full url into a settings object', function() {
-    var url = 'mongodb://x:y@localhost:27017/mydb?w=2';
-    var settings = utils.parseSettings(url);
+    const url = 'mongodb://x:y@localhost:27017/mydb?w=2';
+    const settings = utils.parseSettings(url);
     should.equal(settings.hostname, 'localhost');
     should.equal(settings.port, 27017);
     should.equal(settings.host, 'localhost');
@@ -98,8 +133,8 @@ describe('util.parseSettings', function() {
   });
 
   it('Parse a url without auth into a settings object', function() {
-    var url = 'mongodb://localhost:27017/mydb/abc?w=2';
-    var settings = utils.parseSettings(url);
+    const url = 'mongodb://localhost:27017/mydb/abc?w=2';
+    const settings = utils.parseSettings(url);
     should.equal(settings.hostname, 'localhost');
     should.equal(settings.port, 27017);
     should.equal(settings.host, 'localhost');
@@ -112,8 +147,8 @@ describe('util.parseSettings', function() {
   });
 
   it('Parse a url with complex query into a settings object', function() {
-    var url = 'mysql://127.0.0.1:3306/mydb?x[a]=1&x[b]=2&engine=InnoDB';
-    var settings = utils.parseSettings(url);
+    const url = 'mysql://127.0.0.1:3306/mydb?x[a]=1&x[b]=2&engine=InnoDB';
+    const settings = utils.parseSettings(url);
     should.equal(settings.hostname, '127.0.0.1');
     should.equal(settings.port, 3306);
     should.equal(settings.host, '127.0.0.1');
@@ -128,8 +163,8 @@ describe('util.parseSettings', function() {
   });
 
   it('Parse a Memory url without auth into a settings object', function() {
-    var url = 'memory://?x=1';
-    var settings = utils.parseSettings(url);
+    const url = 'memory://?x=1';
+    const settings = utils.parseSettings(url);
     should.equal(settings.hostname, '');
     should.equal(settings.user, undefined);
     should.equal(settings.password, undefined);
@@ -142,7 +177,7 @@ describe('util.parseSettings', function() {
 
 describe('util.deepMerge', function() {
   it('should deep merge objects', function() {
-    var extras = {base: 'User',
+    const extras = {base: 'User',
       relations: {accessTokens: {model: 'accessToken', type: 'hasMany',
         foreignKey: 'userId'},
       account: {model: 'account', type: 'belongsTo'}},
@@ -161,7 +196,7 @@ describe('util.deepMerge', function() {
           principalType: 'ROLE',
           principalId: '$owner'},
       ]};
-    var base = {strict: false,
+    const base = {strict: false,
       acls: [
         {principalType: 'ROLE',
           principalId: '$everyone',
@@ -175,9 +210,9 @@ describe('util.deepMerge', function() {
       maxTTL: 31556926,
       ttl: 1209600};
 
-    var merged = deepMerge(base, extras);
+    const merged = deepMerge(base, extras);
 
-    var expected = {strict: false,
+    const expected = {strict: false,
       acls: [
         {principalType: 'ROLE',
           principalId: '$everyone',
@@ -214,20 +249,20 @@ describe('util.deepMerge', function() {
 
 describe('util.rankArrayElements', function() {
   it('should add property \'__rank\' to array elements of type object {}', function() {
-    var acls = [
+    const acls = [
       {accessType: '*',
         permission: 'DENY',
         principalType: 'ROLE',
         principalId: '$everyone'},
     ];
 
-    var rankedAcls = rankArrayElements(acls, 2);
+    const rankedAcls = rankArrayElements(acls, 2);
 
     should.equal(rankedAcls[0].__rank, 2);
   });
 
   it('should not replace existing \'__rank\' property of array elements', function() {
-    var acls = [
+    const acls = [
       {accessType: '*',
         permission: 'DENY',
         principalType: 'ROLE',
@@ -236,14 +271,14 @@ describe('util.rankArrayElements', function() {
       },
     ];
 
-    var rankedAcls = rankArrayElements(acls, 2);
+    const rankedAcls = rankArrayElements(acls, 2);
 
     should.equal(rankedAcls[0].__rank, 1);
   });
 });
 
 describe('util.sortObjectsByIds', function() {
-  var items = [
+  const items = [
     {id: 1, name: 'a'},
     {id: 2, name: 'b'},
     {id: 3, name: 'c'},
@@ -253,35 +288,35 @@ describe('util.sortObjectsByIds', function() {
   ];
 
   it('should sort', function() {
-    var sorted = sortObjectsByIds('id', [6, 5, 4, 3, 2, 1], items);
-    var names = sorted.map(function(u) { return u.name; });
+    const sorted = sortObjectsByIds('id', [6, 5, 4, 3, 2, 1], items);
+    const names = sorted.map(function(u) { return u.name; });
     should.deepEqual(names, ['f', 'e', 'd', 'c', 'b', 'a']);
   });
 
   it('should sort - partial ids', function() {
-    var sorted = sortObjectsByIds('id', [5, 3, 2], items);
-    var names = sorted.map(function(u) { return u.name; });
+    const sorted = sortObjectsByIds('id', [5, 3, 2], items);
+    const names = sorted.map(function(u) { return u.name; });
     should.deepEqual(names, ['e', 'c', 'b', 'a', 'd', 'f']);
   });
 
   it('should sort - strict', function() {
-    var sorted = sortObjectsByIds('id', [5, 3, 2], items, true);
-    var names = sorted.map(function(u) { return u.name; });
+    const sorted = sortObjectsByIds('id', [5, 3, 2], items, true);
+    const names = sorted.map(function(u) { return u.name; });
     should.deepEqual(names, ['e', 'c', 'b']);
   });
 });
 
 describe('util.mergeIncludes', function() {
   function checkInputOutput(baseInclude, updateInclude, expectedInclude) {
-    var mergedInclude = mergeIncludes(baseInclude, updateInclude);
+    const mergedInclude = mergeIncludes(baseInclude, updateInclude);
     should.deepEqual(mergedInclude, expectedInclude,
       'Merged include should match the expectation');
   }
 
   it('Merge string values to object', function() {
-    var baseInclude = 'relation1';
-    var updateInclude = 'relation2';
-    var expectedInclude = [
+    const baseInclude = 'relation1';
+    const updateInclude = 'relation2';
+    const expectedInclude = [
       {relation2: true},
       {relation1: true},
     ];
@@ -289,9 +324,9 @@ describe('util.mergeIncludes', function() {
   });
 
   it('Merge string & array values to object', function() {
-    var baseInclude = 'relation1';
-    var updateInclude = ['relation2'];
-    var expectedInclude = [
+    const baseInclude = 'relation1';
+    const updateInclude = ['relation2'];
+    const expectedInclude = [
       {relation2: true},
       {relation1: true},
     ];
@@ -299,9 +334,9 @@ describe('util.mergeIncludes', function() {
   });
 
   it('Merge string & object values to object', function() {
-    var baseInclude = ['relation1'];
-    var updateInclude = {relation2: 'relation2Include'};
-    var expectedInclude = [
+    const baseInclude = ['relation1'];
+    const updateInclude = {relation2: 'relation2Include'};
+    const expectedInclude = [
       {relation2: 'relation2Include'},
       {relation1: true},
     ];
@@ -309,9 +344,9 @@ describe('util.mergeIncludes', function() {
   });
 
   it('Merge array & array values to object', function() {
-    var baseInclude = ['relation1'];
-    var updateInclude = ['relation2'];
-    var expectedInclude = [
+    const baseInclude = ['relation1'];
+    const updateInclude = ['relation2'];
+    const expectedInclude = [
       {relation2: true},
       {relation1: true},
     ];
@@ -319,9 +354,9 @@ describe('util.mergeIncludes', function() {
   });
 
   it('Merge array & object values to object', function() {
-    var baseInclude = ['relation1'];
-    var updateInclude = {relation2: 'relation2Include'};
-    var expectedInclude = [
+    const baseInclude = ['relation1'];
+    const updateInclude = {relation2: 'relation2Include'};
+    const expectedInclude = [
       {relation2: 'relation2Include'},
       {relation1: true},
     ];
@@ -329,9 +364,9 @@ describe('util.mergeIncludes', function() {
   });
 
   it('Merge object & object values to object', function() {
-    var baseInclude = {relation1: 'relation1Include'};
-    var updateInclude = {relation2: 'relation2Include'};
-    var expectedInclude = [
+    const baseInclude = {relation1: 'relation1Include'};
+    const updateInclude = {relation2: 'relation2Include'};
+    const expectedInclude = [
       {relation2: 'relation2Include'},
       {relation1: 'relation1Include'},
     ];
@@ -339,9 +374,9 @@ describe('util.mergeIncludes', function() {
   });
 
   it('Override property collision with update value', function() {
-    var baseInclude = {relation1: 'baseValue'};
-    var updateInclude = {relation1: 'updateValue'};
-    var expectedInclude = [
+    const baseInclude = {relation1: 'baseValue'};
+    const updateInclude = {relation1: 'updateValue'};
+    const expectedInclude = [
       {relation1: 'updateValue'},
     ];
     checkInputOutput(baseInclude, updateInclude, expectedInclude);
@@ -349,21 +384,21 @@ describe('util.mergeIncludes', function() {
 
   it('Merge string includes & include with relation syntax properly',
     function() {
-      var baseInclude = 'relation1';
-      var updateInclude = {relation: 'relation1'};
-      var expectedInclude = [
+      const baseInclude = 'relation1';
+      const updateInclude = {relation: 'relation1'};
+      const expectedInclude = [
         {relation: 'relation1'},
       ];
       checkInputOutput(baseInclude, updateInclude, expectedInclude);
     });
 
   it('Merge string includes & include with scope properly', function() {
-    var baseInclude = 'relation1';
-    var updateInclude = {
+    const baseInclude = 'relation1';
+    const updateInclude = {
       relation: 'relation1',
       scope: {include: 'relation2'},
     };
-    var expectedInclude = [
+    const expectedInclude = [
       {relation: 'relation1', scope: {include: 'relation2'}},
     ];
     checkInputOutput(baseInclude, updateInclude, expectedInclude);
@@ -372,12 +407,12 @@ describe('util.mergeIncludes', function() {
   it('Merge includes with and without relation syntax properly',
     function() {
       // w & w/o relation syntax - no collision
-      var baseInclude = ['relation2'];
-      var updateInclude = {
+      let baseInclude = ['relation2'];
+      let updateInclude = {
         relation: 'relation1',
         scope: {include: 'relation2'},
       };
-      var expectedInclude = [{
+      let expectedInclude = [{
         relation: 'relation1',
         scope: {include: 'relation2'},
       }, {relation2: true}];
@@ -398,13 +433,13 @@ describe('util.mergeIncludes', function() {
     });
 
   it('Merge includes with mixture of strings, arrays & objects properly', function() {
-    var baseInclude = ['relation1', {relation2: true},
+    const baseInclude = ['relation1', {relation2: true},
       {relation: 'relation3', scope: {where: {id: 'some id'}}},
       {relation: 'relation5', scope: {where: {id: 'some id'}}},
     ];
-    var updateInclude = ['relation4', {relation3: true},
+    const updateInclude = ['relation4', {relation3: true},
       {relation: 'relation2', scope: {where: {id: 'some id'}}}];
-    var expectedInclude = [{relation4: true}, {relation3: true},
+    const expectedInclude = [{relation4: true}, {relation3: true},
       {relation: 'relation2', scope: {where: {id: 'some id'}}},
       {relation1: true},
       {relation: 'relation5', scope: {where: {id: 'some id'}}}];
@@ -414,57 +449,57 @@ describe('util.mergeIncludes', function() {
 
 describe('util.uniq', function() {
   it('should dedupe an array with duplicate number entries', function() {
-    var a = [1, 2, 1, 3];
-    var b = uniq(a);
+    const a = [1, 2, 1, 3];
+    const b = uniq(a);
     b.should.eql([1, 2, 3]);
   });
 
   it('should dedupe an array with duplicate string entries', function() {
-    var a = ['a', 'a', 'b', 'a'];
-    var b = uniq(a);
+    const a = ['a', 'a', 'b', 'a'];
+    const b = uniq(a);
     b.should.eql(['a', 'b']);
   });
 
   it('should dedupe an array with duplicate bson entries', function() {
-    var idOne = new ObjectID('59f9ec5dc7d59a00042f7c62');
-    var idTwo = new ObjectID('59f9ec5dc7d59a00042f7c63');
-    var a = [idOne, idTwo, new ObjectID('59f9ec5dc7d59a00042f7c62'),
+    const idOne = new ObjectID('59f9ec5dc7d59a00042f7c62');
+    const idTwo = new ObjectID('59f9ec5dc7d59a00042f7c63');
+    const a = [idOne, idTwo, new ObjectID('59f9ec5dc7d59a00042f7c62'),
       new ObjectID('59f9ec5dc7d59a00042f7c62')];
-    var b = uniq(a);
+    const b = uniq(a);
     b.should.eql([idOne, idTwo]);
   });
 
   it('should dedupe an array without duplicate number entries', function() {
-    var a = [1, 3, 2];
-    var b = uniq(a);
+    const a = [1, 3, 2];
+    const b = uniq(a);
     b.should.eql([1, 3, 2]);
   });
 
   it('should dedupe an array without duplicate string entries', function() {
-    var a = ['a', 'c', 'b'];
-    var b = uniq(a);
+    const a = ['a', 'c', 'b'];
+    const b = uniq(a);
     b.should.eql(['a', 'c', 'b']);
   });
 
   it('should dedupe an array without duplicate bson entries', function() {
-    var idOne = new ObjectID('59f9ec5dc7d59a00042f7c62');
-    var idTwo = new ObjectID('59f9ec5dc7d59a00042f7c63');
-    var idThree = new ObjectID('59f9ec5dc7d59a00042f7c64');
-    var a = [idOne, idTwo, idThree];
-    var b = uniq(a);
+    const idOne = new ObjectID('59f9ec5dc7d59a00042f7c62');
+    const idTwo = new ObjectID('59f9ec5dc7d59a00042f7c63');
+    const idThree = new ObjectID('59f9ec5dc7d59a00042f7c64');
+    const a = [idOne, idTwo, idThree];
+    const b = uniq(a);
     b.should.eql([idOne, idTwo, idThree]);
   });
 
   it('should allow null/undefined array', function() {
-    var a = null;
-    var b = uniq(a);
+    const a = null;
+    const b = uniq(a);
     b.should.eql([]);
   });
 
   it('should report error for non-array arg', function() {
-    var a = '1';
+    const a = '1';
     try {
-      var b = uniq(a);
+      const b = uniq(a);
       throw new Error('The test should have thrown an error');
     } catch (err) {
       err.should.be.instanceof(Error);
@@ -473,8 +508,8 @@ describe('util.uniq', function() {
 });
 
 describe('util.toRegExp', function() {
-  var invalidDataTypes;
-  var validDataTypes;
+  let invalidDataTypes;
+  let validDataTypes;
 
   before(function() {
     invalidDataTypes = [0, true, {}, [], Function, null];
@@ -556,6 +591,38 @@ describe('util.hasRegExpFlags', function() {
 
     it('should be false when the regex has no flags', function() {
       utils.hasRegExpFlags(new RegExp(/^regex$/)).should.not.be.ok;
+    });
+  });
+});
+
+describe('util.idsHaveDuplicates', function() {
+  context('with string IDs', function() {
+    it('should be true with a duplicate present', function() {
+      utils.idsHaveDuplicates(['a', 'b', 'a']).should.be.ok;
+    });
+
+    it('should be false when no duplicates are present', function() {
+      utils.idsHaveDuplicates(['a', 'b', 'c']).should.not.be.ok;
+    });
+  });
+
+  context('with numeric IDs', function() {
+    it('should be true with a duplicate present', function() {
+      utils.idsHaveDuplicates([1, 2, 1]).should.be.ok;
+    });
+
+    it('should be false when no duplicates are present', function() {
+      utils.idsHaveDuplicates([1, 2, 3]).should.not.be.ok;
+    });
+  });
+
+  context('with complex IDs', function() {
+    it('should be true with a duplicate present', function() {
+      utils.idsHaveDuplicates(['a', 'b', 'a'].map(id => ({id}))).should.be.ok;
+    });
+
+    it('should be false when no duplicates are present', function() {
+      utils.idsHaveDuplicates(['a', 'b', 'c'].map(id => ({id}))).should.not.be.ok;
     });
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "loopback-datasource-juggler",
-  "version": "3.22.2",
+  "version": "4.6.2",
   "publishConfig": {
     "export-tests": true
   },
@@ -15,7 +15,7 @@
     "ORM"
   ],
   "engines": {
-    "node": ">=6"
+    "node": ">=8"
   },
   "repository": {
     "type": "git",
@@ -36,23 +36,22 @@
   "devDependencies": {
     "@types/node": "^10.0.8",
     "async-iterators": "^0.2.2",
-    "bson": "^1.0.4",
+    "bson": "^4.0.1",
     "coveralls": "^3.0.1",
-    "eslint": "^4.19.1",
-    "eslint-config-loopback": "^10.0.0",
+    "eslint": "^5.1.0",
+    "eslint-config-loopback": "^13.0.0",
     "loopback-connector-throwing": "file:./test/fixtures/loopback-connector-throwing",
     "mocha": "^5.2.0",
-    "nyc": "^12.0.2",
+    "nyc": "^13.1.0",
     "should": "^8.4.0",
-    "typescript": "^2.8.3"
+    "typescript": "^3.2.2"
   },
   "dependencies": {
     "async": "^2.6.0",
-    "bluebird": "^3.1.1",
-    "debug": "^3.1.0",
-    "depd": "^1.0.0",
+    "debug": "^4.1.0",
+    "depd": "^2.0.0",
     "inflection": "^1.6.0",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.11",
     "loopback-connector": "^4.4.0",
     "minimatch": "^3.0.3",
     "qs": "^6.5.0",
@@ -66,7 +65,8 @@
     "downstreamIgnoreList": [
       "loopback-connector-db2z",
       "loopback-connector-informix",
-      "loopback-connector-mqlight"
+      "loopback-connector-mqlight",
+      "loopback-connector-kv-extreme-scale"
     ]
   }
 }

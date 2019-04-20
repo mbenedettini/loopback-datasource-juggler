@@ -4,35 +4,35 @@
 // License text available at https://opensource.org/licenses/MIT
 
 'use strict';
-var ValidationError = require('../').ValidationError;
+const ValidationError = require('../').ValidationError;
 
-var async = require('async');
-var contextTestHelpers = require('./helpers/context-test-helpers');
-var ContextRecorder = contextTestHelpers.ContextRecorder;
-var deepCloneToObject = contextTestHelpers.deepCloneToObject;
-var aCtxForModel = contextTestHelpers.aCtxForModel;
-var GeoPoint = require('../lib/geo.js').GeoPoint;
+const async = require('async');
+const contextTestHelpers = require('./helpers/context-test-helpers');
+const ContextRecorder = contextTestHelpers.ContextRecorder;
+const deepCloneToObject = contextTestHelpers.deepCloneToObject;
+const aCtxForModel = contextTestHelpers.aCtxForModel;
+const GeoPoint = require('../lib/geo.js').GeoPoint;
 
-var uid = require('./helpers/uid-generator');
-var getLastGeneratedUid = uid.last;
+const uid = require('./helpers/uid-generator');
+const getLastGeneratedUid = uid.last;
 
-var HookMonitor = require('./helpers/hook-monitor');
-var isNewInstanceFlag;
+const HookMonitor = require('./helpers/hook-monitor');
+let isNewInstanceFlag;
 
 module.exports = function(dataSource, should, connectorCapabilities) {
   isNewInstanceFlag = connectorCapabilities.replaceOrCreateReportsNewInstance;
   if (!connectorCapabilities) connectorCapabilities = {};
   if (isNewInstanceFlag === undefined) {
-    var warn = 'The connector does not support a recently added feature:' +
+    const warn = 'The connector does not support a recently added feature:' +
       ' replaceOrCreateReportsNewInstance';
     console.warn(warn);
   }
   describe('Persistence hooks', function() {
-    var ctxRecorder, hookMonitor, expectedError;
-    var TestModel, existingInstance, GeoModel;
-    var migrated = false;
+    let ctxRecorder, hookMonitor, expectedError;
+    let TestModel, existingInstance, GeoModel;
+    let migrated = false;
 
-    var undefinedValue = undefined;
+    let undefinedValue = undefined;
 
     beforeEach(function setupDatabase(done) {
       ctxRecorder = new ContextRecorder('hook not called');
@@ -82,8 +82,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
 
           TestModel.create({name: 'second'}, function(err) {
             if (err) return done(err);
-            var location1 = new GeoPoint({lat: 10.2, lng: 6.7});
-            var location2 = new GeoPoint({lat: 10.3, lng: 6.8});
+            const location1 = new GeoPoint({lat: 10.2, lng: 6.7});
+            const location2 = new GeoPoint({lat: 10.3, lng: 6.8});
             GeoModel.create([
               {name: 'Rome', location: location1},
               {name: 'Tokyo', location: location2},
@@ -109,7 +109,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               'loaded',
             ]);
             done();
-          });
+          }
+        );
       });
 
       it('triggers the loaded hook multiple times when multiple instances exist', function(done) {
@@ -136,13 +137,13 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             if (err) return done(err);
             hookMonitor.names.should.be.empty();
             done();
-          });
+          }
+        );
       });
 
       it('triggers the loaded hook multiple times when multiple instances exist when near filter is used',
         function(done) {
-          var hookMonitorGeoModel;
-          hookMonitorGeoModel = new HookMonitor({includeModelName: false});
+          const hookMonitorGeoModel = new HookMonitor({includeModelName: false});
 
           function monitorHookExecutionGeoModel(hookNames) {
             hookMonitorGeoModel.install(GeoModel, hookNames);
@@ -150,7 +151,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
 
           monitorHookExecutionGeoModel();
 
-          var query = {
+          const query = {
             where: {location: {near: '10,5'}},
           };
           GeoModel.find(query, function(err, list) {
@@ -168,7 +169,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           next();
         });
 
-        var query = {
+        const query = {
           where: {location: {near: '10,5'}},
         };
 
@@ -189,7 +190,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             next();
           });
 
-          var query = {
+          const query = {
             where: {location: {near: '10,5'}},
           };
 
@@ -242,7 +243,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               if (err) return done(err);
               hookMonitor.names.should.be.empty();
               done();
-            });
+            }
+          );
         });
 
       it('should apply updates from `access` hook', function(done) {
@@ -340,7 +342,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
 
             list[0].should.have.property('extra', 'hook data');
             done();
-          });
+          }
+        );
       });
 
       it('emits error when `loaded` hook fails', function(done) {
@@ -350,7 +353,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           function(err, list) {
             [err].should.eql([expectedError]);
             done();
-          });
+          }
+        );
       });
     });
 
@@ -370,7 +374,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               'after save',
             ]);
             done();
-          });
+          }
+        );
       });
 
       it('aborts when `after save` fires when option to notify is false', function(done) {
@@ -446,7 +451,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               }),
             ]);
             done();
-          });
+          }
+        );
       });
 
       it('validates model after `before save` hook', function(done) {
@@ -474,7 +480,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             }));
 
             done();
-          });
+          }
+        );
       });
 
       it('applies updates from `persist` hook', function(done) {
@@ -507,7 +514,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               });
               done();
             });
-          });
+          }
+        );
       });
 
       it('triggers `loaded` hook', function(done) {
@@ -529,7 +537,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             }));
 
             done();
-          });
+          }
+        );
       });
 
       it('emits error when `loaded` hook fails', function(done) {
@@ -539,7 +548,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           function(err, instance) {
             [err].should.eql([expectedError]);
             done();
-          });
+          }
+        );
       });
 
       it('applies updates from `loaded` hook', function(done) {
@@ -560,7 +570,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
 
             instance.should.have.property('extra', 'hook data');
             done();
-          });
+          }
+        );
       });
 
       it('triggers `after save` hook', function(done) {
@@ -625,7 +636,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               }),
             ]);
             done();
-          });
+          }
+        );
       });
 
       it('emits `after save` when some models were not saved', function(done) {
@@ -654,7 +666,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               isNewInstance: true,
             }));
             done();
-          });
+          }
+        );
       });
     });
 
@@ -674,7 +687,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               skip: 0,
             }}));
             done();
-          });
+          }
+        );
       });
 
       if (dataSource.connector.findOrCreate) {
@@ -696,7 +710,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
                 isNewInstance: true,
               }));
               done();
-            });
+            }
+          );
         });
       }
 
@@ -717,7 +732,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               isNewInstance: true,
             }));
             done();
-          });
+          }
+        );
       });
 
       it('validates model after `before save` hook', function(done) {
@@ -730,7 +746,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             (err || {}).should.be.instanceOf(ValidationError);
             (err.details.codes || {}).should.eql({name: ['presence']});
             done();
-          });
+          }
+        );
       });
 
       it('triggers hooks in the correct order when not found', function(done) {
@@ -749,7 +766,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               'after save',
             ]);
             done();
-          });
+          }
+        );
       });
 
       it('triggers hooks in the correct order when found', function(done) {
@@ -775,7 +793,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               ]);
             }
             done();
-          });
+          }
+        );
       });
 
       it('aborts when `access` hook fails', function(done) {
@@ -787,7 +806,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           function(err, instance) {
             [err].should.eql([expectedError]);
             done();
-          });
+          }
+        );
       });
 
       it('aborts when `before save` hook fails', function(done) {
@@ -799,7 +819,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           function(err, instance) {
             [err].should.eql([expectedError]);
             done();
-          });
+          }
+        );
       });
 
       if (dataSource.connector.findOrCreate) {
@@ -835,7 +856,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               }));
 
               done();
-            });
+            }
+          );
         });
       }
 
@@ -875,7 +897,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               }));
             }
             done();
-          });
+          }
+        );
       });
 
       if (dataSource.connector.findOrCreate) {
@@ -909,7 +932,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               });
 
               done();
-            });
+            }
+          );
         });
       }
 
@@ -948,7 +972,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               });
             }
             done();
-          });
+          }
+        );
       });
 
       if (dataSource.connector.findOrCreate) {
@@ -975,7 +1000,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               }));
 
               done();
-            });
+            }
+          );
         });
       }
 
@@ -997,7 +1023,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             }));
 
             done();
-          });
+          }
+        );
       });
 
       it('emits error when `loaded` hook fails', function(done) {
@@ -1008,7 +1035,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           function(err, instance) {
             [err].should.eql([expectedError]);
             done();
-          });
+          }
+        );
       });
 
       if (dataSource.connector.findOrCreate) {
@@ -1027,7 +1055,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               instance.should.have.property('extra', 'hook data');
 
               done();
-            });
+            }
+          );
         });
       }
 
@@ -1053,7 +1082,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
 
             instance.should.have.property('extra', 'hook data');
             done();
-          });
+          }
+        );
       });
 
       it('triggers `after save` hook when not found', function(done) {
@@ -1073,7 +1103,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               isNewInstance: true,
             }));
             done();
-          });
+          }
+        );
       });
 
       it('does not trigger `after save` hook when found', function(done) {
@@ -1086,7 +1117,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             if (err) return done(err);
             ctxRecorder.records.should.eql('hook not called');
             done();
-          });
+          }
+        );
       });
     });
 
@@ -1131,7 +1163,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               'after save',
             ]);
             done();
-          });
+          }
+        );
       });
 
       it('triggers `before save` hook', function(done) {
@@ -1249,7 +1282,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           function(err, instance) {
             [err].should.eql([expectedError]);
             done();
-          });
+          }
+        );
       });
 
       it('applies updates from `loaded` hook', function(done) {
@@ -1290,9 +1324,10 @@ module.exports = function(dataSource, should, connectorCapabilities) {
         // The rationale behind passing { persisted: true } is to bypass the check
         // made by DAO to determine whether the instance should be saved via
         // PersistedModel.create and force it to call connector.save()
-        var instance = new TestModel(
+        const instance = new TestModel(
           {id: 'new-id', name: 'created'},
-          {persisted: true});
+          {persisted: true}
+        );
 
         instance.save(function(err, instance) {
           if (err) return done(err);
@@ -1348,13 +1383,14 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               'after save',
             ]);
             done();
-          });
+          }
+        );
       });
 
       it('triggers `before save` hook', function(done) {
         TestModel.observe('before save', ctxRecorder.recordAndNext());
 
-        var currentInstance = deepCloneToObject(existingInstance);
+        const currentInstance = deepCloneToObject(existingInstance);
 
         existingInstance.updateAttributes({name: 'changed'}, function(err) {
           if (err) return done(err);
@@ -1457,13 +1493,13 @@ module.exports = function(dataSource, should, connectorCapabilities) {
       });
 
       it('applies updates from `persist` hook - for nested model instance', function(done) {
-        var Address = dataSource.createModel('NestedAddress', {
+        const Address = dataSource.createModel('NestedAddress', {
           id: {type: String, id: true, default: 1},
           city: {type: String, required: true},
           country: {type: String, required: true},
         });
 
-        var User = dataSource.createModel('UserWithAddress', {
+        const User = dataSource.createModel('UserWithAddress', {
           id: {type: String, id: true, default: uid.next},
           name: {type: String, required: true},
           address: {type: Address, required: false},
@@ -1475,7 +1511,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           User.create({name: 'Joe'}, function(err, instance) {
             if (err) return done(err);
 
-            var existingUser = instance;
+            const existingUser = instance;
 
             User.observe('persist', ctxRecorder.recordAndNext(function(ctx) {
               should.exist(ctx.data.address);
@@ -1508,7 +1544,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
                   });
                   done();
                 });
-              });
+              }
+            );
           });
         });
       });
@@ -1544,7 +1581,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           function(err, instance) {
             [err].should.eql([expectedError]);
             done();
-          });
+          }
+        );
       });
 
       it('applies updates from `loaded` hook updateAttributes', function(done) {
@@ -1625,7 +1663,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
                 'after save',
               ]);
               done();
-            });
+            }
+          );
         });
 
         it('triggers `before save` hook', function(done) {
@@ -1722,13 +1761,13 @@ module.exports = function(dataSource, should, connectorCapabilities) {
         });
 
         it('applies updates from `persist` hook - for nested model instance', function(done) {
-          var Address = dataSource.createModel('NestedAddress', {
+          const Address = dataSource.createModel('NestedAddress', {
             id: {type: String, id: true, default: 1},
             city: {type: String, required: true},
             country: {type: String, required: true},
           });
 
-          var User = dataSource.createModel('UserWithAddress', {
+          const User = dataSource.createModel('UserWithAddress', {
             id: {type: String, id: true, default: uid.next},
             name: {type: String, required: true},
             address: {type: Address, required: false},
@@ -1740,7 +1779,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             User.create({name: 'Joe'}, function(err, instance) {
               if (err) return done(err);
 
-              var existingUser = instance;
+              const existingUser = instance;
 
               User.observe('persist', ctxRecorder.recordAndNext(function(ctx) {
                 should.exist(ctx.data.address);
@@ -1768,7 +1807,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
                     });
                     done();
                   });
-                });
+                }
+              );
             });
           });
         });
@@ -1796,7 +1836,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             function(err, instance) {
               [err].should.eql([expectedError]);
               done();
-            });
+            }
+          );
         });
 
         it('applies updates from `loaded` hook replaceAttributes', function(done) {
@@ -1871,7 +1912,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               'after save',
             ]);
             done();
-          });
+          }
+        );
       });
 
       it('triggers hooks in the correct order on update', function(done) {
@@ -1889,7 +1931,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               'after save',
             ]);
             done();
-          });
+          }
+        );
       });
 
       it('triggers `access` hook on create', function(done) {
@@ -1903,7 +1946,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               where: {id: 'not-found'},
             }}));
             done();
-          });
+          }
+        );
       });
 
       it('triggers `access` hook on update', function(done) {
@@ -1917,7 +1961,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               where: {id: existingInstance.id},
             }}));
             done();
-          });
+          }
+        );
       });
 
       it('does not trigger `access` on missing id', function(done) {
@@ -1929,7 +1974,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             if (err) return done(err);
             ctxRecorder.records.should.equal('hook not called');
             done();
-          });
+          }
+        );
       });
 
       it('applies updates from `access` hook when found', function(done) {
@@ -1950,7 +1996,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               ]);
               done();
             });
-          });
+          }
+        );
       });
 
       it('applies updates from `access` hook when not found', function(done) {
@@ -1972,7 +2019,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               ]);
               done();
             });
-          });
+          }
+        );
       });
 
       it('triggers hooks only once', function(done) {
@@ -1989,7 +2037,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             if (err) return done(err);
             hookMonitor.names.should.eql(['access', 'before save']);
             done();
-          });
+          }
+        );
       });
 
       it('triggers `before save` hook on update', function(done) {
@@ -2018,7 +2067,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               }));
             }
             done();
-          });
+          }
+        );
       });
 
       it('triggers `before save` hook on create', function(done) {
@@ -2047,7 +2097,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             }
 
             done();
-          });
+          }
+        );
       });
 
       it('applies updates from `before save` hook on update', function(done) {
@@ -2063,7 +2114,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             if (err) return done(err);
             instance.name.should.equal('hooked');
             done();
-          });
+          }
+        );
       });
 
       it('applies updates from `before save` hook on create', function(done) {
@@ -2083,7 +2135,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             if (err) return done(err);
             instance.name.should.equal('hooked');
             done();
-          });
+          }
+        );
       });
 
       // FIXME(bajtos) this fails with connector-specific updateOrCreate
@@ -2097,7 +2150,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             (err || {}).should.be.instanceOf(ValidationError);
             (err.details.codes || {}).should.eql({name: ['presence']});
             done();
-          });
+          }
+        );
       });
 
       // FIXME(bajtos) this fails with connector-specific updateOrCreate
@@ -2111,7 +2165,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             (err || {}).should.be.instanceOf(ValidationError);
             (err.details.codes || {}).should.eql({name: ['presence']});
             done();
-          });
+          }
+        );
       });
 
       it('triggers `persist` hook on create', function(done) {
@@ -2147,7 +2202,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               }));
             }
             done();
-          });
+          }
+        );
       });
 
       it('triggers `persist` hook on update', function(done) {
@@ -2158,7 +2214,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           function(err, instance) {
             if (err) return done(err);
 
-            var expectedContext = aCtxForModel(TestModel, {
+            const expectedContext = aCtxForModel(TestModel, {
               where: {id: existingInstance.id},
               data: {
                 id: existingInstance.id,
@@ -2179,7 +2235,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
 
             ctxRecorder.records.should.eql(expectedContext);
             done();
-          });
+          }
+        );
       });
 
       it('triggers `loaded` hook on create', function(done) {
@@ -2205,7 +2262,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               }));
             }
             done();
-          });
+          }
+        );
       });
 
       it('triggers `loaded` hook on update', function(done) {
@@ -2223,7 +2281,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               isNewInstance: isNewInstanceFlag ? false : undefined,
             }));
             done();
-          });
+          }
+        );
       });
 
       it('emits error when `loaded` hook fails', function(done) {
@@ -2233,7 +2292,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           function(err, instance) {
             [err].should.eql([expectedError]);
             done();
-          });
+          }
+        );
       });
 
       it('triggers `after save` hook on update', function(done) {
@@ -2252,7 +2312,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               isNewInstance: isNewInstanceFlag ? false : undefined,
             }));
             done();
-          });
+          }
+        );
       });
 
       it('aborts when `after save` fires on update or create when option to notify is false', function(done) {
@@ -2282,7 +2343,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               isNewInstance: isNewInstanceFlag ? true : undefined,
             }));
             done();
-          });
+          }
+        );
       });
     });
 
@@ -2305,7 +2367,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
                 'after save',
               ]);
               done();
-            });
+            }
+          );
         });
 
         it('triggers hooks in the correct order on replace', function(done) {
@@ -2323,7 +2386,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
                 'after save',
               ]);
               done();
-            });
+            }
+          );
         });
 
         it('triggers `access` hook on create', function(done) {
@@ -2337,7 +2401,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
                 where: {id: 'not-found'},
               }}));
               done();
-            });
+            }
+          );
         });
 
         it('triggers `access` hook on replace', function(done) {
@@ -2351,7 +2416,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
                 where: {id: existingInstance.id},
               }}));
               done();
-            });
+            }
+          );
         });
 
         it('does not trigger `access` on missing id', function(done) {
@@ -2363,7 +2429,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               if (err) return done(err);
               ctxRecorder.records.should.equal('hook not called');
               done();
-            });
+            }
+          );
         });
 
         it('applies updates from `access` hook when found', function(done) {
@@ -2384,7 +2451,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
                 ]);
                 done();
               });
-            });
+            }
+          );
         });
 
         it('applies updates from `access` hook when not found', function(done) {
@@ -2406,7 +2474,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
                 ]);
                 done();
               });
-            });
+            }
+          );
         });
 
         it('triggers hooks only once', function(done) {
@@ -2423,7 +2492,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               if (err) return done(err);
               hookMonitor.names.should.eql(['access', 'before save']);
               done();
-            });
+            }
+          );
         });
 
         it('triggers `before save` hookon create', function(done) {
@@ -2433,7 +2503,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               if (err)
                 return done(err);
 
-              var expectedContext = aCtxForModel(TestModel, {
+              const expectedContext = aCtxForModel(TestModel, {
                 instance: instance,
               });
 
@@ -2451,7 +2521,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             function(err, instance) {
               if (err) return done(err);
 
-              var expectedContext = aCtxForModel(TestModel, {
+              const expectedContext = aCtxForModel(TestModel, {
                 instance: {
                   id: existingInstance.id,
                   name: 'replaced name',
@@ -2465,7 +2535,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               ctxRecorder.records.should.eql(expectedContext);
 
               done();
-            });
+            }
+          );
         });
 
         it('triggers `before save` hook on create', function(done) {
@@ -2476,7 +2547,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             function(err, instance) {
               if (err) return done(err);
 
-              var expectedContext = aCtxForModel(TestModel, {
+              const expectedContext = aCtxForModel(TestModel, {
                 instance: {
                   id: 'new-id',
                   name: 'a name',
@@ -2490,7 +2561,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               ctxRecorder.records.should.eql(expectedContext);
 
               done();
-            });
+            }
+          );
         });
 
         it('applies updates from `before save` hook on create', function(done) {
@@ -2505,7 +2577,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               if (err) return done(err);
               instance.name.should.equal('hooked');
               done();
-            });
+            }
+          );
         });
 
         it('validates model after `before save` hook on create', function(done) {
@@ -2517,7 +2590,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               (err || {}).should.be.instanceOf(ValidationError);
               (err.details.codes || {}).should.eql({name: ['presence']});
               done();
-            });
+            }
+          );
         });
 
         it('triggers `persist` hook on create', function(done) {
@@ -2528,7 +2602,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             function(err, instance) {
               if (err) return done(err);
 
-              var expectedContext = aCtxForModel(TestModel, {
+              const expectedContext = aCtxForModel(TestModel, {
                 currentInstance: {
                   id: 'new-id',
                   name: 'a name',
@@ -2550,7 +2624,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               }
               ctxRecorder.records.should.eql(expectedContext);
               done();
-            });
+            }
+          );
         });
 
         it('triggers `persist` hook on replace', function(done) {
@@ -2561,7 +2636,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             function(err, instance) {
               if (err) return done(err);
 
-              var expected = {
+              const expected = {
                 where: {id: existingInstance.id},
                 data: {
                   id: existingInstance.id,
@@ -2574,7 +2649,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
                 },
               };
 
-              var expectedContext = aCtxForModel(TestModel, expected);
+              const expectedContext = aCtxForModel(TestModel, expected);
 
               if (!dataSource.connector.replaceOrCreate) {
                 expectedContext.isNewInstance = false;
@@ -2582,7 +2657,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
 
               ctxRecorder.records.should.eql(expectedContext);
               done();
-            });
+            }
+          );
         });
 
         it('applies updates from `persist` hook on create', function(done) {
@@ -2608,7 +2684,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
                 found.should.have.property('extra', 'hook data');
                 done();
               });
-            });
+            }
+          );
         });
 
         it('applies updates from `persist` hook on update', function(done) {
@@ -2640,7 +2717,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             function(err, instance) {
               if (err) return done(err);
 
-              var expected = {
+              const expected = {
                 data: {
                   id: 'new-id',
                   name: 'a name',
@@ -2653,7 +2730,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
 
               ctxRecorder.records.should.eql(aCtxForModel(TestModel, expected));
               done();
-            });
+            }
+          );
         });
 
         it('triggers `loaded` hook on replace', function(done) {
@@ -2664,7 +2742,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             function(err, instance) {
               if (err) return done(err);
 
-              var expected = {
+              const expected = {
                 data: {
                   id: existingInstance.id,
                   name: 'replaced name',
@@ -2677,7 +2755,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
 
               ctxRecorder.records.should.eql(aCtxForModel(TestModel, expected));
               done();
-            });
+            }
+          );
         });
 
         it('emits error when `loaded` hook fails', function(done) {
@@ -2687,7 +2766,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             function(err, instance) {
               [err].should.eql([expectedError]);
               done();
-            });
+            }
+          );
         });
 
         it('triggers `after save` hook on replace', function(done) {
@@ -2698,7 +2778,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             function(err, instance) {
               if (err) return done(err);
 
-              var expected = {
+              const expected = {
                 instance: {
                   id: existingInstance.id,
                   name: 'replaced name',
@@ -2712,7 +2792,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
 
               ctxRecorder.records.should.eql(aCtxForModel(TestModel, expected));
               done();
-            });
+            }
+          );
         });
 
         it('triggers `after save` hook on create', function(done) {
@@ -2723,7 +2804,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             function(err, instance) {
               if (err) return done(err);
 
-              var expected = {
+              const expected = {
                 instance: {
                   id: instance.id,
                   name: 'a name',
@@ -2736,7 +2817,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
 
               ctxRecorder.records.should.eql(aCtxForModel(TestModel, expected));
               done();
-            });
+            }
+          );
         });
       });
     }
@@ -2761,7 +2843,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
                 'after save',
               ]);
               done();
-            });
+            }
+          );
         });
 
         it('triggers `persist` hook', function(done) {
@@ -2801,7 +2884,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
 
               ctxRecorder.records.should.eql(expectedContext);
               done();
-            });
+            }
+          );
         });
 
         it('applies updates from `persist` hook', function(done) {
@@ -2822,7 +2906,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
                 found.should.have.property('extra', 'hook data');
                 done();
               });
-            });
+            }
+          );
         });
       });
     }
@@ -3020,7 +3105,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           TestModel.findById(existingInstance.id, function(err, inst) {
             if (err) return done(err);
             (inst ? inst.toObject() : 'null').should.eql(
-              existingInstance.toObject());
+              existingInstance.toObject()
+            );
             done();
           });
         });
@@ -3118,7 +3204,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               where: {name: 'searched'},
             }}));
             done();
-          });
+          }
+        );
       });
 
       it('applies updates from `access` hook', function(done) {
@@ -3140,7 +3227,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               ]);
               done();
             });
-          });
+          }
+        );
       });
 
       it('triggers `before save` hook', function(done) {
@@ -3156,7 +3244,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               data: {name: 'updated'},
             }));
             done();
-          });
+          }
+        );
       });
 
       it('applies updates from `before save` hook', function(done) {
@@ -3176,7 +3265,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               instance.should.have.property('extra', 'added');
               done();
             });
-          });
+          }
+        );
       });
 
       it('triggers `persist` hook', function(done) {
@@ -3194,7 +3284,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             }));
 
             done();
-          });
+          }
+        );
       });
 
       it('applies updates from `persist` hook', function(done) {
@@ -3212,7 +3303,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               instance.should.have.property('extra', 'hook data');
               done();
             });
-          });
+          }
+        );
       });
 
       it('does not trigger `loaded`', function(done) {
@@ -3225,7 +3317,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
             if (err) return done(err);
             ctxRecorder.records.should.eql('hook not called');
             done();
-          });
+          }
+        );
       });
 
       it('triggers `after save` hook', function(done) {
@@ -3242,7 +3335,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               info: {count: 1},
             }));
             done();
-          });
+          }
+        );
       });
 
       it('accepts hookState from options', function(done) {
@@ -3258,7 +3352,8 @@ module.exports = function(dataSource, should, connectorCapabilities) {
               foo: 'bar',
             });
             done();
-          });
+          }
+        );
       });
     });
 
@@ -3402,7 +3497,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           {id: existingInstance.id, name: 'updated name'},
           function(err, instance) {
             if (err) return done(err);
-            var expectedContext = aCtxForModel(TestModel, {
+            const expectedContext = aCtxForModel(TestModel, {
               where: {id: existingInstance.id},
               data: {
                 id: existingInstance.id,
@@ -3429,7 +3524,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           {id: 'new-id', name: 'a name'},
           function(err, instance) {
             if (err) return done(err);
-            var expectedContext = aCtxForModel(TestModel, {});
+            const expectedContext = aCtxForModel(TestModel, {});
 
             if (dataSource.connector.upsertWithWhere) {
               expectedContext.data = {id: 'new-id', name: 'a name'};
@@ -3511,7 +3606,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           function(err, instance) {
             if (err) return done(err);
 
-            var expectedContext = aCtxForModel(TestModel, {
+            const expectedContext = aCtxForModel(TestModel, {
               data: {id: 'new-id', name: 'a name'},
               currentInstance: {
                 id: 'new-id',
@@ -3537,7 +3632,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           {id: existingInstance.id, name: 'updated name'},
           function(err, instance) {
             if (err) return done(err);
-            var expectedContext = aCtxForModel(TestModel, {
+            const expectedContext = aCtxForModel(TestModel, {
               where: {id: existingInstance.id},
               data: {
                 id: existingInstance.id,
@@ -3579,7 +3674,7 @@ module.exports = function(dataSource, should, connectorCapabilities) {
           {id: existingInstance.id, name: 'updated name'},
           function(err, instance) {
             if (err) return done(err);
-            var expectedContext = aCtxForModel(TestModel, {
+            const expectedContext = aCtxForModel(TestModel, {
               data: {
                 id: existingInstance.id,
                 name: 'updated name',
