@@ -1,3 +1,25 @@
+2019-05-31, Version 3.31.1
+==========================
+
+ * Fix for #1724 - Added options to attribute updates (#1725) (#1748) (Bill Matson)
+
+ * Fix "access" hook for unoptimized "near" queries (Miroslav Bajtoš)
+
+ * Test "near" queries executed in memory (Miroslav Bajtoš)
+
+ * Fix DateString ctor to accept DateString instances (Miroslav Bajtoš)
+
+
+2019-05-03, Version 3.31.0
+==========================
+
+ * fix: allow coercion of nested properties (biniam)
+
+ * Add support for Node.js 12.x (Miroslav Bajtoš)
+
+ * chore: remove kv-extreme-scale from downstream (#1722) (Diana Lau)
+
+
 2019-04-18, Version 3.30.0
 ==========================
 
